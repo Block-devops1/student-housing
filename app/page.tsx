@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 interface Property {
   _id: string;
   title: string;
@@ -40,12 +38,12 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-blue-600">StudentHousing</h1>
+              <h1 className="text-2xl font-bold text-blue-600">StudentHousing NG</h1>
             </div>
             <nav className="hidden md:flex space-x-8">
               <a href="#" className="text-gray-700 hover:text-blue-600">Home</a>
+              <a href="/student-profile" className="text-gray-700 hover:text-blue-600">Student Profile</a>
               <a href="#" className="text-gray-700 hover:text-blue-600">Properties</a>
-              <a href="#" className="text-gray-700 hover:text-blue-600">About</a>
               <a href="#" className="text-gray-700 hover:text-blue-600">Contact</a>
             </nav>
             <div className="flex items-center space-x-4">
@@ -62,10 +60,10 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
             <h2 className="text-4xl md:text-6xl font-bold mb-6">
-              Find Your Perfect Student Housing
+              Find Your Perfect Student Housing in Nigeria
             </h2>
             <p className="text-xl md:text-2xl mb-8 text-blue-100">
-              Discover affordable, convenient housing options near your campus
+              Discover affordable student-friendly housing near Nigerian campuses
             </p>
 
             {/* Search Bar */}
@@ -73,7 +71,7 @@ export default async function Home() {
               <div className="flex flex-col md:flex-row gap-2">
                 <input
                   type="text"
-                  placeholder="Enter city, university, or address"
+                  placeholder="Search Lagos, Abuja, University of Lagos, Covenant University..."
                   className="flex-1 px-4 py-3 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <button className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 font-medium">
@@ -106,7 +104,7 @@ export default async function Home() {
                       {property.address.street}, {property.address.city}, {property.address.state}
                     </p>
                     <div className="flex items-center justify-between mb-4">
-                      <span className="text-2xl font-bold text-blue-600">${property.price}/month</span>
+                      <span className="text-2xl font-bold text-blue-600">₦{property.price.toLocaleString()}</span>
                       <span className="text-sm text-gray-500">
                         {property.bedrooms} bed • {property.bathrooms} bath
                       </span>
@@ -180,21 +178,6 @@ export default async function Home() {
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
     </div>
   );
 }

@@ -48,42 +48,42 @@ export async function seedDatabase() {
     // Sample properties
     const sampleProperties: Omit<Property, '_id'>[] = [
       {
-        title: 'Modern Student Apartment',
-        description: 'Beautiful modern apartment perfect for students. Walking distance to campus with all amenities included.',
+        title: 'Self-Contain Near University of Lagos',
+        description: 'Fully furnished self-contain with reliable generator and water supply, 10 minutes from University of Lagos.',
         address: {
-          street: '123 University Ave',
-          city: 'College Town',
-          state: 'CA',
-          zipCode: '90210',
-          coordinates: [-118.2437, 34.0522],
+          street: '28 Akoka Road',
+          city: 'Lagos',
+          state: 'Lagos',
+          zipCode: '100213',
+          coordinates: [3.3883, 6.5147],
         },
-        price: 1200,
-        bedrooms: 2,
+        price: 220000,
+        bedrooms: 1,
         bathrooms: 1,
-        squareFootage: 850,
-        amenities: ['parking', 'laundry', 'pet-friendly', 'wifi', 'gym'],
+        squareFootage: 450,
+        amenities: ['generator', 'water supply', 'wifi', 'laundry', 'security'],
         images: ['/placeholder-property-1.jpg'],
         landlordId: userIds[0].toString(),
-        availabilityDate: new Date('2024-09-01'),
+        availabilityDate: new Date('2024-08-01'),
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
       {
-        title: 'Cozy Studio Near University',
-        description: 'Charming studio apartment in the heart of the university district. Perfect for graduate students.',
+        title: 'Shared Apartment in Yaba',
+        description: 'Affordable shared apartment for students, close to tech hubs and public transport.',
         address: {
-          street: '456 Campus Drive',
-          city: 'College Town',
-          state: 'CA',
-          zipCode: '90211',
-          coordinates: [-118.2537, 34.0622],
+          street: '76 Babs Anibaba Street',
+          city: 'Lagos',
+          state: 'Lagos',
+          zipCode: '101212',
+          coordinates: [3.3840, 6.5033],
         },
-        price: 950,
-        bedrooms: 0,
+        price: 110000,
+        bedrooms: 2,
         bathrooms: 1,
-        squareFootage: 450,
-        amenities: ['wifi', 'gym', 'laundry'],
+        squareFootage: 700,
+        amenities: ['generator', 'security', 'wifi', 'water supply'],
         images: ['/placeholder-property-2.jpg'],
         landlordId: userIds[1].toString(),
         availabilityDate: new Date('2024-08-15'),
@@ -92,42 +92,42 @@ export async function seedDatabase() {
         updatedAt: new Date(),
       },
       {
-        title: 'Shared House with Students',
-        description: 'Friendly shared house with 3 other students. Great community atmosphere and utilities included.',
+        title: 'Graduate Studio near Covenant University',
+        description: 'Quiet studio apartment ideal for postgraduates and research students.',
         address: {
-          street: '789 Student Lane',
-          city: 'College Town',
-          state: 'CA',
-          zipCode: '90212',
-          coordinates: [-118.2637, 34.0722],
+          street: '12 Akala Expressway',
+          city: 'Ota',
+          state: 'Ogun',
+          zipCode: '112101',
+          coordinates: [3.1833, 6.6842],
         },
-        price: 800,
-        bedrooms: 3,
-        bathrooms: 2,
-        squareFootage: 1800,
-        amenities: ['utilities-included', 'parking', 'laundry'],
+        price: 170000,
+        bedrooms: 0,
+        bathrooms: 1,
+        squareFootage: 420,
+        amenities: ['generator', 'water supply', 'wifi', 'security'],
         images: ['/placeholder-property-3.jpg'],
         landlordId: userIds[0].toString(),
-        availabilityDate: new Date('2024-08-01'),
+        availabilityDate: new Date('2024-09-01'),
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
       {
-        title: 'Luxury Student Condo',
-        description: 'High-end condo with premium amenities. Perfect for students who want comfort and convenience.',
+        title: 'Campus House in Abuja',
+        description: 'Shared student house with daily housekeeping and 24/7 security, close to ABU and other schools.',
         address: {
-          street: '321 Premium Street',
-          city: 'College Town',
-          state: 'CA',
-          zipCode: '90213',
-          coordinates: [-118.2737, 34.0822],
+          street: '45 Gwarinpa Road',
+          city: 'Abuja',
+          state: 'FCT',
+          zipCode: '900108',
+          coordinates: [7.4388, 9.0792],
         },
-        price: 1800,
-        bedrooms: 2,
+        price: 250000,
+        bedrooms: 3,
         bathrooms: 2,
-        squareFootage: 1100,
-        amenities: ['parking', 'gym', 'pool', 'wifi', 'laundry', 'pet-friendly'],
+        squareFootage: 1350,
+        amenities: ['generator', 'water supply', 'security', 'laundry', 'parking'],
         images: ['/placeholder-property-4.jpg'],
         landlordId: userIds[1].toString(),
         availabilityDate: new Date('2024-09-15'),
@@ -137,17 +137,18 @@ export async function seedDatabase() {
       },
     ];
 
-    await db.collection('properties').insertMany(sampleProperties);
+    const insertedProperties = await db.collection('properties').insertMany(sampleProperties);
+    const propertyIds = Object.values(insertedProperties.insertedIds);
 
     // Update landlord properties arrays
     await db.collection('users').updateOne(
       { _id: userIds[0] },
-      { $set: { properties: [sampleProperties[0], sampleProperties[2]].map(p => p._id?.toString()) } }
+      { $set: { properties: [propertyIds[0], propertyIds[2]].map(id => id.toString()) } }
     );
 
     await db.collection('users').updateOne(
       { _id: userIds[1] },
-      { $set: { properties: [sampleProperties[1], sampleProperties[3]].map(p => p._id?.toString()) } }
+      { $set: { properties: [propertyIds[1], propertyIds[3]].map(id => id.toString()) } }
     );
 
     console.log('Database seeded successfully!');

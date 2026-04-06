@@ -15,7 +15,7 @@ let cachedClient: MongoClient | null = null;
 
 export function getMongoClient() {
   if (!cachedClient) {
-    cachedClient = new MongoClient(uri);
+    cachedClient = new MongoClient(uri!);
   }
   return cachedClient;
 }
