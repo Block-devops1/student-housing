@@ -13,6 +13,50 @@ export async function getActiveProperties(limit: number = 10): Promise<Property[
     .toArray();
 }
 
+export async function searchProperties(filters: {
+  city?: string;
+  maxPrice?: number;
+  minBedrooms?: number;
+  amenities?: string[];
+  query?: string;
+  limit?: number;
+}): Promise<Property[]> {
+  const query: Record<string, unknown> = { isActive: true };
+
+  if (filters.city) {
+    query['address.city'] = { $regex: filters.city, $options: 'i' };
+  }
+
+  if (filters.query) {
+    const textRegex = { $regex: filters.query, $options: 'i' };
+    query.$or = [
+      { title: textRegex },
+      { description: textRegex },
+      { 'address.city': textRegex },
+      { 'address.state': textRegex },
+      { 'address.street': textRegex },
+    ];
+  }
+
+  if (typeof filters.maxPrice === 'number') {
+    query.price = { ...(query.price as object), $lte: filters.maxPrice };
+  }
+
+  if (typeof filters.minBedrooms === 'number') {
+    query.bedrooms = { ...(query.bedrooms as object), $gte: filters.minBedrooms };
+  }
+
+  if (filters.amenities && filters.amenities.length > 0) {
+    query.amenities = { $all: filters.amenities };
+  }
+
+  return await propertiesCollection
+    .find(query)
+    .sort({ createdAt: -1 })
+    .limit(filters.limit ?? 20)
+    .toArray();
+}
+
 // Get property by ID
 export async function getPropertyById(id: string): Promise<Property | null> {
   return await propertiesCollection.findOne({ _id: id, isActive: true });

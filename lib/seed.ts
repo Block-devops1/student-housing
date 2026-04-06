@@ -1,5 +1,5 @@
 import { getMongoDatabase } from './mongodb';
-import { Property, User } from './types';
+import { Property, User, Application } from './types';
 
 const db = getMongoDatabase();
 
@@ -8,6 +8,7 @@ export async function seedDatabase() {
     // Clear existing data
     await db.collection('properties').deleteMany({});
     await db.collection('users').deleteMany({});
+    await db.collection('applications').deleteMany({});
 
     // Sample users
     const sampleUsers: Omit<User, '_id'>[] = [
@@ -37,6 +38,19 @@ export async function seedDatabase() {
           maxPrice: 1500,
           minBedrooms: 1,
           preferredAmenities: ['parking', 'laundry'],
+        },
+        createdAt: new Date(),
+      },
+      {
+        name: 'Emma Wilson',
+        email: 'emma.wilson@email.com',
+        phone: '555-0104',
+        userType: 'student',
+        university: 'Tech University',
+        preferences: {
+          maxPrice: 2000,
+          minBedrooms: 2,
+          preferredAmenities: ['wifi', 'security'],
         },
         createdAt: new Date(),
       },
@@ -151,8 +165,38 @@ export async function seedDatabase() {
       { $set: { properties: [propertyIds[1], propertyIds[3]].map(id => id.toString()) } }
     );
 
+    // Sample applications
+    const sampleApplications: Omit<Application, '_id'>[] = [
+      {
+        studentId: userIds[2].toString(),
+        propertyId: propertyIds[0].toString(),
+        status: 'pending',
+        message: 'I am a student at nearby university and this location is perfect for my studies.',
+        appliedAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        studentId: userIds[3].toString(),
+        propertyId: propertyIds[1].toString(),
+        status: 'approved',
+        message: 'Looking for a shared apartment with good amenities.',
+        appliedAt: new Date(Date.now() - 86400000), // 1 day ago
+        updatedAt: new Date(),
+      },
+      {
+        studentId: userIds[2].toString(),
+        propertyId: propertyIds[3].toString(),
+        status: 'rejected',
+        message: 'Budget constraints, but interested in future listings.',
+        appliedAt: new Date(Date.now() - 172800000), // 2 days ago
+        updatedAt: new Date(),
+      },
+    ];
+
+    await db.collection('applications').insertMany(sampleApplications);
+
     console.log('Database seeded successfully!');
-    console.log(`Created ${sampleUsers.length} users and ${sampleProperties.length} properties`);
+    console.log(`Created ${sampleUsers.length} users, ${sampleProperties.length} properties, and ${sampleApplications.length} applications`);
 
   } catch (error) {
     console.error('Error seeding database:', error);

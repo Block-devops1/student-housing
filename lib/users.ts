@@ -26,3 +26,39 @@ export async function upsertStudentProfile(profile: Omit<User, '_id' | 'createdA
 
   return result;
 }
+
+export async function upsertLandlordProfile(profile: {
+  name: string;
+  email: string;
+  phone?: string;
+  companyName?: string;
+}) {
+  const now = new Date();
+
+  const updateDoc = {
+    $set: {
+      name: profile.name,
+      email: profile.email,
+      phone: profile.phone || '',
+      companyName: profile.companyName || '',
+      userType: 'landlord' as const,
+      updatedAt: now,
+    },
+    $setOnInsert: {
+      properties: [],
+      createdAt: now,
+    },
+  };
+
+  const result = await usersCollection.updateOne(
+    { email: profile.email },
+    updateDoc,
+    { upsert: true }
+  );
+
+  return result;
+}
+
+export async function getStudentProfileByEmail(email: string): Promise<User | null> {
+  return await usersCollection.findOne({ email });
+}
