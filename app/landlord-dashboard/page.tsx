@@ -206,6 +206,32 @@ export default function LandlordDashboard() {
     }
   };
 
+  const handleDeleteProperty = async (propertyId: string) => {
+    if (!confirm("Are you sure you want to delete this property?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/landlord-properties", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: propertyId }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setProperties(properties.filter((p) => p._id !== propertyId));
+        setStatusMessage("✓ Property deleted successfully!");
+        setTimeout(() => setStatusMessage(null), 3000);
+      } else {
+        setStatusMessage("❌ Failed to delete property");
+      }
+    } catch (error) {
+      console.error("Error deleting property:", error);
+      setStatusMessage("❌ Error deleting property");
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem(landlordStorageKey);
     router.push("/");
@@ -321,16 +347,16 @@ export default function LandlordDashboard() {
                         className="rounded-xl border border-slate-200 px-4 py-3 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
                       />
                       <input
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        placeholder="City"
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
+                        placeholder="State"
                         required
                         className="rounded-xl border border-slate-200 px-4 py-3 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
                       />
                       <input
-                        value={state}
-                        onChange={(e) => setState(e.target.value)}
-                        placeholder="State"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="City"
                         required
                         className="rounded-xl border border-slate-200 px-4 py-3 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
                       />
@@ -467,15 +493,23 @@ export default function LandlordDashboard() {
                           {property.bedrooms} bed • {property.bathrooms} bath
                         </span>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        {property.amenities.slice(0, 2).map((amenity) => (
-                          <span
-                            key={amenity}
-                            className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700"
-                          >
-                            {amenity.replace("-", " ")}
-                          </span>
-                        ))}
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap gap-2">
+                          {property.amenities.slice(0, 2).map((amenity) => (
+                            <span
+                              key={amenity}
+                              className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700"
+                            >
+                              {amenity.replace("-", " ")}
+                            </span>
+                          ))}
+                        </div>
+                        <button
+                          onClick={() => handleDeleteProperty(property._id)}
+                          className="rounded-lg bg-red-100 text-red-700 px-3 py-2 text-sm font-medium hover:bg-red-200 transition"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   </div>

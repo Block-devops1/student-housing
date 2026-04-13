@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMongoClient } from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
 
 export async function GET(request: NextRequest) {
   try {
@@ -152,6 +153,47 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         message: "Failed to create property: " + errorMessage,
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: "Property ID required" },
+        { status: 400 },
+      );
+    }
+
+    const client = await getMongoClient();
+    const db = client.db(process.env.MONGODB_DB);
+
+    const result = await db
+      .collection("properties")
+      .deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json(
+        { success: false, message: "Property not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting property:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          "Error deleting property: " +
+          (error instanceof Error ? error.message : "Unknown error"),
       },
       { status: 500 },
     );

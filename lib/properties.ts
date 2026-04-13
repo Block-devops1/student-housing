@@ -32,7 +32,10 @@ export async function searchProperties(filters: {
   const query: Record<string, unknown> = { isActive: true };
 
   if (filters.city) {
-    query["address.city"] = { $regex: filters.city, $options: "i" };
+    query.$or = [
+      { "address.city": { $regex: filters.city, $options: "i" } },
+      { "address.state": { $regex: filters.city, $options: "i" } },
+    ];
   }
 
   if (filters.query) {
@@ -58,7 +61,7 @@ export async function searchProperties(filters: {
   }
 
   if (filters.amenities && filters.amenities.length > 0) {
-    query.amenities = { $all: filters.amenities };
+    query.amenities = { $in: filters.amenities };
   }
 
   return await collection
