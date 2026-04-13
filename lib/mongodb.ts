@@ -12,14 +12,32 @@ if (!dbName) {
 }
 
 let cachedClient: MongoClient | null = null;
+let clientPromise: Promise<MongoClient> | null = null;
 
-export function getMongoClient() {
-  if (!cachedClient) {
-    cachedClient = new MongoClient(uri!);
+function connectToDatabase() {
+  if (cachedClient) {
+    return Promise.resolve(cachedClient);
   }
-  return cachedClient;
+
+  if (!clientPromise) {
+    clientPromise = new MongoClient(uri!).connect().then((client) => {
+      cachedClient = client;
+      return client;
+    });
+  }
+
+  return clientPromise;
+}
+
+export async function getMongoClient() {
+  return connectToDatabase();
 }
 
 export function getMongoDatabase() {
-  return getMongoClient().db(dbName);
+  if (!cachedClient) {
+    throw new Error(
+      "MongoDB client not connected. Use await getMongoClient() first.",
+    );
+  }
+  return cachedClient.db(dbName);
 }

@@ -1,12 +1,19 @@
-import { getMongoDatabase } from './mongodb';
-import { Property } from './types';
+import { getMongoClient } from "./mongodb";
+import { Property } from "./types";
 
-const db = getMongoDatabase();
-const propertiesCollection = db.collection<Property>('properties');
+// Helper to get properties collection
+async function getPropertiesCollection() {
+  const client = await getMongoClient();
+  const db = client.db(process.env.MONGODB_DB);
+  return db.collection<Property>("properties");
+}
 
 // Get all active properties
-export async function getActiveProperties(limit: number = 10): Promise<Property[]> {
-  return await propertiesCollection
+export async function getActiveProperties(
+  limit: number = 10,
+): Promise<Property[]> {
+  const collection = await getPropertiesCollection();
+  return await collection
     .find({ isActive: true })
     .sort({ createdAt: -1 })
     .limit(limit)
@@ -21,36 +28,40 @@ export async function searchProperties(filters: {
   query?: string;
   limit?: number;
 }): Promise<Property[]> {
+  const collection = await getPropertiesCollection();
   const query: Record<string, unknown> = { isActive: true };
 
   if (filters.city) {
-    query['address.city'] = { $regex: filters.city, $options: 'i' };
+    query["address.city"] = { $regex: filters.city, $options: "i" };
   }
 
   if (filters.query) {
-    const textRegex = { $regex: filters.query, $options: 'i' };
+    const textRegex = { $regex: filters.query, $options: "i" };
     query.$or = [
       { title: textRegex },
       { description: textRegex },
-      { 'address.city': textRegex },
-      { 'address.state': textRegex },
-      { 'address.street': textRegex },
+      { "address.city": textRegex },
+      { "address.state": textRegex },
+      { "address.street": textRegex },
     ];
   }
 
-  if (typeof filters.maxPrice === 'number') {
+  if (typeof filters.maxPrice === "number") {
     query.price = { ...(query.price as object), $lte: filters.maxPrice };
   }
 
-  if (typeof filters.minBedrooms === 'number') {
-    query.bedrooms = { ...(query.bedrooms as object), $gte: filters.minBedrooms };
+  if (typeof filters.minBedrooms === "number") {
+    query.bedrooms = {
+      ...(query.bedrooms as object),
+      $gte: filters.minBedrooms,
+    };
   }
 
   if (filters.amenities && filters.amenities.length > 0) {
     query.amenities = { $all: filters.amenities };
   }
 
-  return await propertiesCollection
+  return await collection
     .find(query)
     .sort({ createdAt: -1 })
     .limit(filters.limit ?? 20)
@@ -59,33 +70,45 @@ export async function searchProperties(filters: {
 
 // Get property by ID
 export async function getPropertyById(id: string): Promise<Property | null> {
-  return await propertiesCollection.findOne({ _id: id, isActive: true });
+  const collection = await getPropertiesCollection();
+  return await collection.findOne({ _id: id, isActive: true });
 }
 
 // Search properties by location
-export async function searchPropertiesByLocation(city: string, limit: number = 20): Promise<Property[]> {
-  return await propertiesCollection
+export async function searchPropertiesByLocation(
+  city: string,
+  limit: number = 20,
+): Promise<Property[]> {
+  const collection = await getPropertiesCollection();
+  return await collection
     .find({
       isActive: true,
-      'address.city': { $regex: city, $options: 'i' }
+      "address.city": { $regex: city, $options: "i" },
     })
     .limit(limit)
     .toArray();
 }
 
 // Get properties by price range
-export async function getPropertiesByPriceRange(minPrice: number, maxPrice: number): Promise<Property[]> {
-  return await propertiesCollection
+export async function getPropertiesByPriceRange(
+  minPrice: number,
+  maxPrice: number,
+): Promise<Property[]> {
+  const collection = await getPropertiesCollection();
+  return await collection
     .find({
       isActive: true,
-      price: { $gte: minPrice, $lte: maxPrice }
+      price: { $gte: minPrice, $lte: maxPrice },
     })
     .sort({ price: 1 })
     .toArray();
 }
 
 // Create a new property
-export async function createProperty(property: Omit<Property, '_id' | 'createdAt' | 'updatedAt'>): Promise<Property> {
+export async function createProperty(
+  property: Omit<Property, "_id" | "createdAt" | "updatedAt">,
+): Promise<Property> {
+  const collection = await getPropertiesCollection();
   const now = new Date();
   const newProperty: Property = {
     ...property,
@@ -93,26 +116,31 @@ export async function createProperty(property: Omit<Property, '_id' | 'createdAt
     updatedAt: now,
   };
 
-  const result = await propertiesCollection.insertOne(newProperty);
+  const result = await collection.insertOne(newProperty);
   return { ...newProperty, _id: result.insertedId.toString() };
 }
 
 // Update property
-export async function updateProperty(id: string, updates: Partial<Property>): Promise<boolean> {
-  const result = await propertiesCollection.updateOne(
+export async function updateProperty(
+  id: string,
+  updates: Partial<Property>,
+): Promise<boolean> {
+  const collection = await getPropertiesCollection();
+  const result = await collection.updateOne(
     { _id: id },
     {
-      $set: { ...updates, updatedAt: new Date() }
-    }
+      $set: { ...updates, updatedAt: new Date() },
+    },
   );
   return result.modifiedCount > 0;
 }
 
 // Delete property (soft delete)
 export async function deleteProperty(id: string): Promise<boolean> {
-  const result = await propertiesCollection.updateOne(
+  const collection = await getPropertiesCollection();
+  const result = await collection.updateOne(
     { _id: id },
-    { $set: { isActive: false, updatedAt: new Date() } }
+    { $set: { isActive: false, updatedAt: new Date() } },
   );
   return result.modifiedCount > 0;
 }

@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { upsertLandlordProfile } from '@/lib/users';
+import { NextRequest, NextResponse } from "next/server";
+import { upsertLandlordProfile } from "@/lib/users";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { name, email, phone, companyName, userType } = body;
 
-    if (!name || !email || userType !== 'landlord') {
+    if (!name || !email || userType !== "landlord") {
       return NextResponse.json(
-        { success: false, message: 'Missing required landlord fields' },
-        { status: 400 }
+        { success: false, message: "Missing required landlord fields" },
+        { status: 400 },
       );
     }
 
@@ -23,13 +23,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: { name, email, phone, companyName, _id: email },
-      message: 'Landlord registered successfully',
+      message: "Landlord registered successfully",
     });
   } catch (error) {
-    console.error('Error registering landlord:', error);
+    console.error("Error registering landlord:", error);
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
-      { status: 500 }
+      {
+        success: false,
+        message:
+          "Error: " +
+          (error instanceof Error ? error.message : "Unknown error"),
+      },
+      { status: 500 },
     );
   }
 }
