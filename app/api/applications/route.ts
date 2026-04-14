@@ -5,7 +5,7 @@ import { ObjectId } from "mongodb";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const landlordId = searchParams.get("landlordId")a;
+    const landlordId = searchParams.get("landlordId");
 
     if (!landlordId) {
       return NextResponse.json(
@@ -68,7 +68,7 @@ export async function PATCH(request: NextRequest) {
       );
 
     if (result.matchedCount === 0) {
-      return NextResponse.json( 
+      return NextResponse.json(
         { success: false, message: "Application not found" },
         { status: 404 },
       );

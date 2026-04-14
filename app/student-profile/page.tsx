@@ -71,17 +71,17 @@ export default function StudentProfilePage() {
         setMinBedrooms(String(profile.preferences.minBedrooms));
       if (Array.isArray(profile?.preferences?.preferredAmenities))
         setPreferredAmenities(profile.preferences.preferredAmenities);
+
+      // Mark checkboxes as checked if profile was previously saved
+      setAgreeToTerms(true);
+      setAgreeToPrivacy(true);
+
+      // Only fetch recommendations if boxes are already agreed
+      fetchRecommendations();
     } catch (error) {
       console.error("Error loading saved profile:", error);
     }
   }, []);
-
-  useEffect(() => {
-    const rawProfile = localStorage.getItem(profileStorageKey);
-    if (rawProfile) {
-      fetchRecommendations();
-    }
-  }, [preferredLocation, maxPrice, minBedrooms, preferredAmenities]);
 
   const toggleAmenity = (amenity: string) => {
     setPreferredAmenities((current) =>
@@ -167,6 +167,25 @@ export default function StudentProfilePage() {
       const result = await response.json();
       if (result.success) {
         localStorage.setItem(profileStorageKey, JSON.stringify(payload));
+
+        // Record agreement in audit trail (encrypted)
+        try {
+          await fetch("/api/agreements", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email,
+              name,
+              userType: "student",
+              agreedToTerms,
+              agreedToPrivacy,
+            }),
+          });
+        } catch (error) {
+          console.error("Failed to record agreement:", error);
+          // Don't block profile save if agreement recording fails
+        }
+
         setStatusMessage(
           "Profile saved successfully. You can now browse matched property listings.",
         );
@@ -446,36 +465,46 @@ export default function StudentProfilePage() {
             <h2 className="text-2xl font-semibold text-slate-900 mb-4">
               Recommended for you
             </h2>
-            <p className="text-slate-600 mb-6">{recommendationMessage}</p>
 
-            {recommendedProperties.length > 0 ? (
-              <div className="space-y-4">
-                {recommendedProperties.map((property) => (
-                  <div
-                    key={property._id}
-                    className="rounded-3xl border border-slate-200 p-5"
-                  >
-                    <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                      {property.title}
-                    </h3>
-                    <p className="text-slate-600 mb-2 line-clamp-2">
-                      {property.description}
-                    </p>
-                    <p className="text-slate-600 text-sm mb-3">
-                      {property.address.city}, {property.address.state}
-                    </p>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="font-semibold text-blue-600">
-                        ₦{property.price.toLocaleString()}
-                      </span>
-                      <span className="text-sm text-slate-500">
-                        {property.bedrooms} bed • {property.bathrooms} bath
-                      </span>
-                    </div>
+            {agreeToTerms && agreeToPrivacy ? (
+              <>
+                <p className="text-slate-600 mb-6">{recommendationMessage}</p>
+
+                {recommendedProperties.length > 0 ? (
+                  <div className="space-y-4">
+                    {recommendedProperties.map((property) => (
+                      <div
+                        key={property._id}
+                        className="rounded-3xl border border-slate-200 p-5"
+                      >
+                        <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                          {property.title}
+                        </h3>
+                        <p className="text-slate-600 mb-2 line-clamp-2">
+                          {property.description}
+                        </p>
+                        <p className="text-slate-600 text-sm mb-3">
+                          {property.address.city}, {property.address.state}
+                        </p>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="font-semibold text-blue-600">
+                            ₦{property.price.toLocaleString()}
+                          </span>
+                          <span className="text-sm text-slate-500">
+                            {property.bedrooms} bed • {property.bathrooms} bath
+                          </span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : null}
+                ) : null}
+              </>
+            ) : (
+              <p className="text-slate-500 bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                ⚠️ Save your profile and agree to the Terms & Conditions and
+                Privacy Policy to see recommendations.
+              </p>
+            )}
           </aside>
         </div>
 

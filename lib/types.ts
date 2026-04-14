@@ -29,7 +29,12 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
-  userType: 'student' | 'landlord';
+  userType: "student" | "landlord";
+  // Authentication
+  passwordHash?: string; // omit for public responses
+  googleId?: string; // for Google Sign-In
+  authMethod?: "email" | "google"; // how they registered/login
+  lastLogin?: Date;
   // Student-specific fields
   university?: string;
   preferences?: {
@@ -40,15 +45,44 @@ export interface User {
   };
   // Landlord-specific fields
   properties?: string[]; // array of Property._id for landlords
+  companyName?: string;
   createdAt: Date;
+  updatedAt?: Date;
 }
 
 export interface Application {
   _id?: string;
   studentId: string; // reference to User._id
   propertyId: string; // reference to Property._id
-  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  status: "pending" | "approved" | "rejected" | "cancelled";
   message?: string;
   appliedAt: Date;
   updatedAt: Date;
+}
+
+export interface AgreementRecord {
+  _id?: string;
+  email: string; // encrypted
+  name: string; // encrypted
+  userType: "student" | "landlord";
+  agreedToTerms: boolean;
+  agreedToPrivacy: boolean;
+  termsVersion: string;
+  privacyVersion: string;
+  ipAddress?: string; // encrypted
+  userAgent?: string; // encrypted
+  timestamp: Date;
+  documentHash: string; // hash of documents for verification
+}
+
+export interface Session {
+  _id?: string;
+  userId: string; // reference to User._id
+  email: string;
+  userType: "student" | "landlord";
+  token: string; // encrypted session token
+  ipAddress: string;
+  userAgent: string;
+  expiresAt: Date;
+  createdAt: Date;
 }

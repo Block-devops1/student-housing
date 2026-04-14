@@ -12,6 +12,10 @@ export default function LandlordRegisterPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
@@ -36,6 +40,16 @@ export default function LandlordRegisterPage() {
       return;
     }
 
+    if (password !== confirmPassword) {
+      setStatusMessage("❌ Passwords do not match");
+      return;
+    }
+
+    if (password.length < 10) {
+      setStatusMessage("❌ Password must be at least 10 characters");
+      return;
+    }
+
     setIsSubmitting(true);
     setStatusMessage(null);
 
@@ -44,8 +58,8 @@ export default function LandlordRegisterPage() {
       email,
       phone,
       companyName,
+      password,
       userType: "landlord",
-      createdAt: new Date().toISOString(),
     };
 
     try {
@@ -58,12 +72,34 @@ export default function LandlordRegisterPage() {
       const result = await response.json();
       if (result.success) {
         localStorage.setItem(landlordStorageKey, JSON.stringify(result.data));
+        localStorage.setItem("sessionToken", result.token);
+
+        // Record agreement in audit trail (encrypted)
+        try {
+          await fetch("/api/agreements", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email,
+              name,
+              userType: "landlord",
+              agreedToTerms,
+              agreedToPrivacy,
+            }),
+          });
+        } catch (error) {
+          console.error("Failed to record agreement:", error);
+          // Don't block registration if agreement recording fails
+        }
+
         setStatusMessage(
           "Registration successful! Redirecting to dashboard...",
         );
         setTimeout(() => {
           router.push("/landlord-dashboard");
         }, 1500);
+      } else if (result.errors) {
+        setStatusMessage(`❌ ${result.errors.join(", ")}`);
       } else {
         setStatusMessage(result.message || "Registration failed.");
       }
@@ -143,6 +179,51 @@ export default function LandlordRegisterPage() {
                   value={companyName}
                   onChange={(event) => setCompanyName(event.target.value)}
                   placeholder="Your Company Name (optional)"
+                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                />
+              </label>
+            </div>
+          </section>
+
+          <section className="space-y-4 border-t border-slate-200 pt-6">
+            <h2 className="text-2xl font-semibold text-slate-900">Security</h2>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <label className="block sm:col-span-2">
+                <span className="text-sm font-medium text-slate-700">
+                  Password
+                </span>
+                <p className="text-xs text-slate-500 mt-1 mb-2">
+                  Minimum 10 characters: 1 uppercase, 1 lowercase, 1 number, 1
+                  special character (!@#$%^&*)
+                </p>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="••••••••••"
+                    required
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-3 text-slate-500 hover:text-slate-700 text-sm"
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </label>
+              <label className="block sm:col-span-2">
+                <span className="text-sm font-medium text-slate-700">
+                  Confirm Password
+                </span>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  placeholder="••••••••••"
+                  required
                   className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
                 />
               </label>
