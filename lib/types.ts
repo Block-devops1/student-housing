@@ -1,7 +1,9 @@
 // Database schema types for Student Housing App
 
+import type { ObjectId } from "mongodb";
+
 export interface Property {
-  _id?: string;
+  _id?: string | ObjectId;
   title: string;
   description: string;
   address: {
@@ -17,7 +19,7 @@ export interface Property {
   squareFootage?: number;
   amenities: string[]; // ["parking", "laundry", "pet-friendly", "wifi", "gym"]
   images: string[]; // array of image URLs
-  landlordId: string; // reference to User._id
+  landlordId: string | ObjectId; // reference to User._id
   availabilityDate: Date;
   isActive: boolean;
   createdAt: Date;
@@ -25,7 +27,7 @@ export interface Property {
 }
 
 export interface User {
-  _id?: string;
+  _id?: string | ObjectId;
   name: string;
   email: string;
   phone?: string;
@@ -44,16 +46,16 @@ export interface User {
     preferredLocation?: string;
   };
   // Landlord-specific fields
-  properties?: string[]; // array of Property._id for landlords
+  properties?: (string | ObjectId)[]; // array of Property._id for landlords
   companyName?: string;
   createdAt: Date;
   updatedAt?: Date;
 }
 
 export interface Application {
-  _id?: string;
-  studentId: string; // reference to User._id
-  propertyId: string; // reference to Property._id
+  _id?: string | ObjectId;
+  studentId: string | ObjectId; // reference to User._id
+  propertyId: string | ObjectId; // reference to Property._id
   status: "pending" | "approved" | "rejected" | "cancelled";
   message?: string;
   appliedAt: Date;
@@ -61,7 +63,7 @@ export interface Application {
 }
 
 export interface AgreementRecord {
-  _id?: string;
+  _id?: string | ObjectId;
   email: string; // encrypted
   name: string; // encrypted
   userType: "student" | "landlord";
@@ -76,8 +78,8 @@ export interface AgreementRecord {
 }
 
 export interface Session {
-  _id?: string;
-  userId: string; // reference to User._id
+  _id?: string | ObjectId;
+  userId: string | ObjectId; // reference to User._id
   email: string;
   userType: "student" | "landlord";
   token: string; // encrypted session token

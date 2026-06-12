@@ -1,4 +1,5 @@
 import { getMongoClient } from "./mongodb";
+import { ObjectId } from "mongodb";
 import { Session } from "./types";
 import crypto from "crypto";
 import { encryptData, decryptData } from "./encryption";
@@ -84,7 +85,11 @@ export async function deleteSession(token: string): Promise<boolean> {
       try {
         const decryptedToken = decryptData(session.token);
         if (decryptedToken === token && session._id) {
-          await db.collection("sessions").deleteOne({ _id: session._id });
+          const idFilter =
+            typeof session._id === "string"
+              ? new ObjectId(session._id)
+              : session._id;
+          await db.collection("sessions").deleteOne({ _id: idFilter });
           return true;
         }
       } catch {

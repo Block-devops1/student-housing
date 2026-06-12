@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ObjectId } from "mongodb";
 import { getMongoClient } from "@/lib/mongodb";
 import { verifyPassword, validatePasswordStrength } from "@/lib/password";
 import { createSession } from "@/lib/session";
@@ -61,7 +62,10 @@ export async function POST(request: NextRequest) {
     // Update last login
     await db
       .collection("users")
-      .updateOne({ _id: user._id }, { $set: { lastLogin: new Date() } });
+      .updateOne(
+        { _id: new ObjectId(String(user._id)) },
+        { $set: { lastLogin: new Date() } },
+      );
 
     // Return user data (without password hash)
     const { passwordHash, ...userWithoutPassword } = user;

@@ -83,8 +83,8 @@ export default function LandlordRegisterPage() {
               email,
               name,
               userType: "landlord",
-              agreedToTerms,
-              agreedToPrivacy,
+              agreedToTerms: agreeToTerms,
+              agreedToPrivacy: agreeToPrivacy,
             }),
           });
         } catch (error) {

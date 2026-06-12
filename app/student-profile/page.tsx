@@ -177,8 +177,8 @@ export default function StudentProfilePage() {
               email,
               name,
               userType: "student",
-              agreedToTerms,
-              agreedToPrivacy,
+              agreedToTerms: agreeToTerms,
+              agreedToPrivacy: agreeToPrivacy,
             }),
           });
         } catch (error) {
