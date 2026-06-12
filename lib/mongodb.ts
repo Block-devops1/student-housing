@@ -1,18 +1,8 @@
 import { MongoClient } from "mongodb";
 
-const uri = process.env.MONGODB_URI;
-const dbName = process.env.MONGODB_DB;
-
-if (!uri) {
-  throw new Error("Missing MONGODB_URI environment variable.");
-}
-
-if (!dbName) {
-  throw new Error("Missing MONGODB_DB environment variable.");
-}
-
 let cachedClient: MongoClient | null = null;
 let clientPromise: Promise<MongoClient> | null = null;
+let cachedDbName: string | undefined;
 
 function connectToDatabase() {
   if (cachedClient) {
@@ -20,7 +10,20 @@ function connectToDatabase() {
   }
 
   if (!clientPromise) {
-    clientPromise = new MongoClient(uri!).connect().then((client) => {
+    const uri = process.env.MONGODB_URI;
+    const dbName = process.env.MONGODB_DB;
+
+    if (!uri) {
+      throw new Error("Missing MONGODB_URI environment variable.");
+    }
+
+    if (!dbName) {
+      throw new Error("Missing MONGODB_DB environment variable.");
+    }
+
+    cachedDbName = dbName;
+
+    clientPromise = new MongoClient(uri).connect().then((client) => {
       cachedClient = client;
       return client;
     });
@@ -39,5 +42,5 @@ export function getMongoDatabase() {
       "MongoDB client not connected. Use await getMongoClient() first.",
     );
   }
-  return cachedClient.db(dbName);
+  return cachedClient.db(cachedDbName);
 }
